@@ -982,7 +982,7 @@ class NodeGroupOutput(NodeUtils, BaseNode):  # todo copy node id problem
 
 @extend_blender_class
 class NodeGroupInput(NodeUtils, BaseNode, bpy.types.Node):
-    
+
     def process(self):
         return
 
