@@ -47,7 +47,7 @@ def dxf_read(node, fp, resolution, scale, curve_degree, layers=None):
     ]
     GEOMETRY_TYPES = [
         "LINE", "CIRCLE", "ARC", "POLYLINE", "LWPOLYLINE", "SPLINE",
-        "ELLIPSE", "POINT", "VERTEX", "3DFACE", "SOLID", "3DFACE",
+        "ELLIPSE", "POINT", "VERTEX", "3DFACE", "SOLID",
         "POLYMESH", "POLYFACE"
     ]
     #pure_geometry = []
@@ -150,7 +150,7 @@ def dxf_geometry_loader(self, entity, curve_degree, resolution, lifehack, scale)
         vers.append([[i*scale for i in vert.xyz] for vert in entity.points()])
         pols.append([[i for i in range(len(vers[-1]))]])
 
-    if typ in ["3dface", "solid","polymesh", "polyface"]:
+    if typ in ["3dface", "solid", "polymesh", "polyface"]:
         print('3Д попалась ========', entity.dxftype)
 
     if typ in ['dimension',"arc-dimension", "diameter_dimension","radial_dimension"]:
@@ -480,6 +480,10 @@ linetypes = [
     ("DIVIDE2", "DIVIDE2", "DIVIDE2 linetype", 19)
 ]
 
+objecttypes3d = [
+    ("FACE", "FACE", "3D polyface", 1),
+    ("LINE", "LINE", "3D polyline", 2),
+]
 
 ######################################
 ######################################
@@ -536,13 +540,26 @@ def polygons_draw(points, scal, lpols, msp):#(p,v,d1,d2,scal,lpols,msp):
         vers,col = points_.vers, points_.color
         lw,lt = points_.lineweight, points_.linetype
         color_int = points_.color_int
+        objecttype = points_.objecttype
         if color_int < 1:
             col = tuple([int(i*255) for i in col[:3]])
             #print('!!!',col)
             col = ezdxf.colors.rgb2int(col)
-            pl = msp.add_polyline3d(points_.vers, dxfattribs={"layer": lpols,'linetype': lt,'lineweight': lw, 'true_color': col}, close=True)
+            if objecttype == 'FACE':
+                #print('face start')
+                pf = msp.add_polyface()
+                pf.append_face(points_.vers, dxfattribs={"layer": lpols,'linetype': lt,'lineweight': lw, 'true_color': col})
+                #print('face finnish')
+            else:
+                pl = msp.add_polyline3d(points_.vers, dxfattribs={"layer": lpols,'linetype': lt,'lineweight': lw, 'true_color': col}, close=True)
         else:
-            pl = msp.add_polyline3d(points_.vers, dxfattribs={"layer": lpols,'linetype': lt,'lineweight': lw, 'color': color_int}, close=True)
+            if objecttype == 'FACE':
+                #print('face start')
+                pf = msp.add_polyface()
+                pf.append_face(points_.vers, dxfattribs={"layer": lpols,'linetype': lt,'lineweight': lw, 'color': color_int})
+                #print('face finnish')
+            else:
+                pl = msp.add_polyline3d(points_.vers, dxfattribs={"layer": lpols,'linetype': lt,'lineweight': lw, 'color': color_int}, close=True)
         #pf = msp.add_polyface()
         #pf.append_face(points, dxfattribs={"layer": lpols})
         #pm = msp.add_polymesh()
